@@ -14,7 +14,6 @@ function checkForBrokenLinkAtSpecificSite(response, body, keyword) {
 	if(body.indexOf(keyword) > -1) {
 		// page is found
 		console.log('Product Is Available');
-		}
 	} else {
 		// page is not found
 		console.log('Product Is Not Available');
