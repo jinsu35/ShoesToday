@@ -1,6 +1,4 @@
-var MAX_ENI_PER_INSTANCE = 2;
-var MAX_IP_PER_ENI = 2;
-var PRIMARY_IP_ADDRESS = '172.31.255.137';
+var _ = require('underscore');
 
 var AWS = require('aws-sdk');
 AWS.config.update({ region: 'ap-northeast-2' });
@@ -13,7 +11,6 @@ function getInstanceId() {
     if (err) console.log(err, err.stack); // an error occurred
     else {
       instanceId = data;
-      console.log('instance-id: ' + instanceId);
     }
   }); 
 }
@@ -25,17 +22,6 @@ getInstanceId();
 
 var ec2 = new AWS.EC2({apiVersion: '2015-10-01'});
 
-// Generate private addresses. 
-
-var privateAddrs = [];
-var num = 138;
-for (i = 0; i < MAX_ENI_PER_INSTANCE; i++) {
-  for (j = 0; j < MAX_IP_PER_ENI; j++) {
-    var newIp = '172.31.255.' + num;
-    privateAddrs.push(newIp);
-    num++;
-  }
-}
 
 // Return all private IP addresses
 function getAllPrivateIpAddresses(callback) {
@@ -60,25 +46,17 @@ function getAllPrivateIpAddresses(callback) {
               AllocationId: association.AllocationId,
               PublicIpAddress: association.PublicIp
             };
-            console.log('Network Interface found. %s', netIace.PrivateIpAddress);
+            console.log('Network Interface: (%s --> %s)', netIace.PrivateIpAddress, netIace.PublicIpAddress);
             networkInterfaces.push(netIace);
           }
         }
       }
-      console.log('%d Network Interfaces found.', networkInterfaces.length);
-      callback(null, networkInterfaces);
+      callback(null, _.pluck(networkInterfaces, 'PrivateIpAddress'));
     }
   });
 }
 
 exports.getAllPrivateIpAddresses = getAllPrivateIpAddresses;
-
-getAllPrivateIpAddresses(function(err, list) {
-  if (err) console.log('ERROR');
-  else console.log('%d private IP addresses found.', list.length);
-});
-
-
 
 function assignPrivateIpAddresses(arr) {
    // Assing private IP addresses that were manually added from EC2 console
@@ -173,7 +151,6 @@ Object.keys(ifaces).forEach(function (ifname) {
       // skip over internal (i.e. 127.0.0.1) and non-ipv4 addresses
       return;
     }
-    console.log('Private IP Address - %s',iface.address);
   });
 });
 
