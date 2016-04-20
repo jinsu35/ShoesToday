@@ -1,51 +1,20 @@
-var async = require("async");
-var networkManager = require("./aws/networkManager.js");
-var Hatchery = require("./crawler/Hatchery.js");
-// var database_companyNameTable = require('./database/companyNameTable.js');
-var database_shoesTable = require('./database/shoesTable.js');
-
-// Adjust numberOfRequestPerSecondPerIp for maximum performance, which can reduce number of public IPs needed.
-var numberOfRequestPerSecondPerIp = 4;
-// var requestInterval = 1000 / numberOfRequestPerSecondPerIp / proxyIpAddressList.length;
-var requestInterval = 5000;
+var async = require('async');
+var Hatchery = require("./crawler/hatchery.js");
+var dbCompanyTable = require('./database/companyNameTable.js');
 
 async.parallel([
-    networkManager.getAllProxyIpAddresses,
-    database_shoesTable.selectAll
-],
-function(err, results){
-	if(err) {
-		console.log(err);
-		return;
+		dbCompanyTable.selectAll
+	],
+	function (err, results) {
+		if (err) { console.log(err, err.stack); return; }
+		var companyList = results[0];
+
+		companyList.forEach(function(company) {
+			var hatchery = new Hatchery(company, 5000);
+			hatchery.start();
+		});
 	}
-	
-	// the results array will equal [proxyIpList, shoesList]
-	console.log('Initialization Finished: ' + results);
-	var hatchery = new Hatchery(results[0], results[1], requestInterval);
-	hatchery.startSendingRequests();
-});
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+);
 
 
 
