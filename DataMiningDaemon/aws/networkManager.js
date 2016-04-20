@@ -19,11 +19,11 @@ function getInstanceId() {
   }); 
 }
 
-// Return all private IP addresses
-function getAllPrivateIpAddresses(callback) {
+// Return all proxy IP addresses
+function getAllProxyIpAddresses(callback) {
   var addresses = ['117.135.250.134:8081', '117.135.250.133:8083', 
                 '117.135.251.134:82', '62.117.96.138:3128', '125.90.207.93:8000'];
   callback(null, addresses);
 }
 
-exports.getAllPrivateIpAddresses = getAllPrivateIpAddresses;
+exports.getAllProxyIpAddresses = getAllProxyIpAddresses;

@@ -2,9 +2,8 @@
 var request = require('request');
 var scrapper = require("./../scrapper/brokenLinkChecker.js");
 
-function Hatchery(proxyIpAddressList, companyNameList, shoesList, requestInterval) {
+function Hatchery(proxyIpAddressList, shoesList, requestInterval) {
 	this.proxyIpAddressList = proxyIpAddressList;
-	this.companyNameList = companyNameList;
 	this.shoesList = shoesList;
 	this.requestInterval = requestInterval;
 	this.requestDaemon = undefined;
@@ -19,23 +18,19 @@ Hatchery.prototype.startSendingRequests = function() {
 
 	// Send request for every 'requestInterval' seconds
 	var proxyIpAddressListIndex = 0;
-	var companyNameListIndex = 0;
 	var shoesListIndex = 0;
 	this.requestDaemon = setInterval(function() {
 		// Send request
-		sendRequest(context.proxyIpAddressList[proxyIpAddressListIndex], context.companyNameList[companyNameListIndex], context.shoesList[shoesListIndex]);
+		sendRequest(context.proxyIpAddressList[proxyIpAddressListIndex], context.shoesList[shoesListIndex]);
 
 		// Increase indexes by one
 		proxyIpAddressListIndex = (proxyIpAddressListIndex + 1) % context.proxyIpAddressList.length;
-		companyNameListIndex = (companyNameListIndex + 1) % context.companyNameList.length;
-		if(companyNameListIndex == 0) {		// This means the link for this shoes has been checked for all websites
-			shoesListIndex = (shoesListIndex + 1) % context.shoesList.length;
-		}
+		shoesListIndex = (shoesListIndex + 1) % context.shoesList.length;
 	}, this.requestInterval);
 };
 
-function sendRequest(proxyIpAddress, companyName, shoes) {
-	var logPrefix = 'proxy Ip Address: ' + proxyIpAddress + ',' + ' Company Name: ' + companyName + ',' + ' Shoes Model: ' + shoes.model + ',' + ' Shoes SKU: ' + shoes.sku;
+function sendRequest(proxyIpAddress, shoes) {
+	var logPrefix = 'proxy Ip Address: ' + proxyIpAddress + ',' + ' Shoes Model: ' + shoes.model + ',' + ' Shoes SKU: ' + shoes.sku;
 
 	var option = {
 		headers: {
@@ -44,7 +39,7 @@ function sendRequest(proxyIpAddress, companyName, shoes) {
 		},
 
 		proxy: 'http://' + proxyIpAddress,
-		uri: "http://www." + companyName + ".com/product/model:" + shoes.model + "/sku:" + shoes.sku
+		uri: "http://www.footlocker.com/product/model:" + shoes.model + "/sku:" + shoes.sku
 	};
 
 	request(option, function(error, response, body) {
@@ -53,6 +48,7 @@ function sendRequest(proxyIpAddress, companyName, shoes) {
 		} else {
 			if (response != null && response.statusCode == 200) {
 				console.log('SUCCESS - ' + logPrefix);
+				var companyName = 'footlocker';
 				scrapper.checkForBrokenLink(companyName, response, body);
 			} else if(response != null && response.statusCode == 403) {
 				console.log('BLOCKED: response.statusCode = ' + response.statusCode);
